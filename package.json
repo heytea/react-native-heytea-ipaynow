@@ -1,0 +1,20 @@
+{
+    "name": "react-native-ipaynow",
+    "version": "1.0.0",
+    "description": "ipaynow react-native plug",
+    "main": "src/index",
+    "scripts": {
+      "test": "echo 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://git.heytea.com/react-native-plugs/react-native-ipaynow.git"
+    },
+    "keywords": [
+      "ipaynow",
+      "react-native"
+    ],
+    "author": "heytea",
+    "license": "MIT"
+  }
+  

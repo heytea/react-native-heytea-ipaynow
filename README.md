@@ -1,1 +1,1 @@
-# react-native-heytea-ipaynow
+现在支付 react-native 插件
