@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/notification_action_background.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/f6e971621774046a477e73d074054b56/res/drawable-v21/notification_action_background.xml"
+    },
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/abc_dialog_material_background.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/68ce50dc5437f606391acb85d848f5d7/res/drawable-v21/abc_dialog_material_background.xml"
+    },
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/abc_action_bar_item_background_material.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/68ce50dc5437f606391acb85d848f5d7/res/drawable-v21/abc_action_bar_item_background_material.xml"
+    },
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/abc_list_divider_material.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/68ce50dc5437f606391acb85d848f5d7/res/drawable-v21/abc_list_divider_material.xml"
+    },
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/abc_btn_colored_material.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/68ce50dc5437f606391acb85d848f5d7/res/drawable-v21/abc_btn_colored_material.xml"
+    },
+    {
+        "merged": "/Users/chengguang/workspace/application-sale-ios/android/nowpay/build/intermediates/res/merged/release/drawable-v21/abc_edit_text_material.xml",
+        "source": "/Users/chengguang/.gradle/caches/transforms-2/files-2.1/68ce50dc5437f606391acb85d848f5d7/res/drawable-v21/abc_edit_text_material.xml"
+    }
+]
