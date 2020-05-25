@@ -25,9 +25,10 @@ public class IPNCrossBorderPackage implements ReactPackage {
                 new IPNCrossBorderModule(reactContext), // 现在支付插件
         });
     }
-
+    
+    @NonNull
     @Override
-    public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
+    public List<ViewManager> createViewManagers(@NonNull ReactApplicationContext reactContext) {
         return Collections.emptyList();
     }
 }
