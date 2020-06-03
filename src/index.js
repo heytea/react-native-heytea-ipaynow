@@ -16,7 +16,6 @@ export const ipnPay = param => {
         });
       });
     }
-  
     return IPNCrossBorder.pay(param);
   };
   
