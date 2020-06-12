@@ -2,6 +2,7 @@ package com.heatey.nowpay;
 
 
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.Arguments;
@@ -38,8 +39,12 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
 
     public IPNCrossBorderModule(ReactApplicationContext reactContext) {
         super(reactContext);
-//        PluginConfig.configDebugMode(true, false, 0);
+        PluginConfig.configDebugMode(true, false, 0);
         this.mContext = reactContext;
+//        PluginConfig.configIpaynowEnv(PluginConfig.IpaynowEnv.ReleaseGlobal); // 生产
+//        PluginConfig.configIpaynowEnv(PluginConfig.IpaynowEnv.ReleaseCn); // 生产
+//        PluginConfig.configIpaynowEnv(PluginConfig.IpaynowEnv.PreRelease);// 预发布
+//        PluginConfig.configIpaynowEnv(PluginConfig.IpaynowEnv.Test);// 测试
     }
 
     @Override
@@ -50,6 +55,8 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
     @ReactMethod
     public void pay(ReadableMap map, Promise promise) {
         this.mPromise = promise;
+
+
         //创建订单
         creatPayMessage(map);
         // 生成请求参数并调起支付
@@ -76,7 +83,7 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
         mPreSign.mhtCurrencyType = map.getString("mhtCurrencyType");
         mPreSign.mhtOrderTimeOut = map.getString("mhtOrderTimeOut");
         mPreSign.mhtCharset = map.getString("mhtCharset");
-        mPreSign.payChannelType = map.getString("payChannelType");
+        mPreSign.payChannelType = map.getString("payChannelType");  // 80 微信跨境支付 |  90 支付宝跨境支付
         mPreSign.mhtSubAppId = map.getString("mhtSubAppId");
         mPreSign.mhtSignature = map.getString("iPaySign");
         mPreSign.mhtAmtCurrFlag = map.getString("mhtAmtCurrFlag");
@@ -104,24 +111,30 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
         StringBuilder temp = new StringBuilder();
         WritableMap map = Arguments.createMap();
 
-        if (respCode.equals("00")) {
+        if ("00".equals(respCode)) {
             temp.append("交易状态:成功");
-            map.putString("result","success");
-            mPromise.resolve(map);
-        } else if (respCode.equals("02")) {
+            map.putString("result", "success");
+            map.putString("msg", temp.toString());
+        } else if ("02".equals(respCode)) {
             temp.append("交易状态:取消");
-            map.putString("result","cancel");
-            mPromise.resolve(map);
-        } else if (respCode.equals("01")) {
+            map.putString("result", "cancel");
+            map.putString("msg", temp.toString());
+        } else if ("01".equals(respCode)) {
             temp.append("交易状态:失败").append("\n").append("错误码:").append(errorCode).append("原因:" + errorMsg);
-            mPromise.reject("failed");
-        } else if (respCode.equals("03")) {
+            map.putString("result", "failed");
+            map.putString("msg", temp.toString());
+        } else if ("03".equals(respCode)) {
             temp.append("交易状态:未知").append("\n").append("原因:" + errorMsg);
-            mPromise.reject("unknow");
+            map.putString("result", "unknow");
+            map.putString("msg", temp.toString());
         } else {
             temp.append("respCode=").append(respCode).append("\n").append("respMsg=").append(errorMsg);
-            mPromise.reject("other error");
+            map.putString("result", "other error");
+            map.putString("msg", temp.toString());
         }
+
+        mPromise.resolve(map);
+
     }
 
 

@@ -29,5 +29,5 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'com.facebook.react:react-native:+'
-
+    api 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
 }
