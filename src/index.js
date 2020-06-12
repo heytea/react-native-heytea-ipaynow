@@ -2,8 +2,6 @@
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 const { IPNCrossBorder } = NativeModules;
 const IPNEmitter = new NativeEventEmitter(IPNCrossBorder);
-// const AppleEmitter = new NativeEventEmitter(ApplePay);
-
 export const ipnPay = param => {
     if (Platform.OS === 'ios') {
       return new Promise((resolve, reject) => {
@@ -18,7 +16,6 @@ export const ipnPay = param => {
         });
       });
     }
-  
     return IPNCrossBorder.pay(param);
   };
   
