@@ -1,20 +1,24 @@
 package com.heatey.nowpay;
 
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.alipay.sdk.app.PayTask;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ipaynow.unionpay.plugin.api.CrossUnionPayPlugin;
+import com.ipaynow.unionpay.plugin.conf.CallMhtStatusCode;
+import com.ipaynow.unionpay.plugin.manager.cache.MessageCache;
+import com.ipaynow.unionpay.plugin.manager.route.dto.ResponseParams;
+import com.ipaynow.unionpay.plugin.manager.route.impl.ReceivePayResult;
 import com.ipaynow.unionpay.plugin.model.PayResult;
 
 import java.util.Map;
@@ -27,11 +31,13 @@ import java.util.Map;
  * CreateTime  ：2020/6/10.
  */
 public class AlipayModule  extends ReactContextBaseJavaModule {
+    private Promise mPromise;
+    private ReactApplicationContext mReactContext;
     public AlipayModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        this.mReactContext =reactContext;
     }
 
-    private Promise mPormise;
 
     @Override
     public String getName() {
@@ -40,12 +46,11 @@ public class AlipayModule  extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void pay(final String orderInfo, Promise promise) {
-        this.mPormise = promise;
+        this.mPromise = promise;
         // 异步任务
         AliPayTask aliPayTask = new AliPayTask();
         aliPayTask.execute(orderInfo);
     }
-
 
     public class AliPayTask extends AsyncTask<String,  Integer, Map<String, String>> {
         protected  Map<String, String> doInBackground(String... params) {
@@ -79,10 +84,24 @@ public class AlipayModule  extends ReactContextBaseJavaModule {
             map.putString("result",result);
             map.putString("status",resultStatus);
             System.out.println("alipay call33333------- "+payResult.toString());
-            mPormise.resolve(map);
-
+//            if (mPromise != null) {
+//                mPromise.resolve(map);
+//                mPromise = null;
+//            }
+            sendEvent(mReactContext,"aliPayCallback",map);
         }
 
-
     }
+
+
+
+    //定义发送事件的函数
+    public  void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params)
+    {
+        System.out.println("reactContext="+reactContext);
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName,params);
+    }
+
 }

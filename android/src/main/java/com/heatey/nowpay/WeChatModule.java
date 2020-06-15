@@ -7,6 +7,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import com.facebook.common.executors.CallerThreadExecutor;
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.common.util.UriUtil;
@@ -20,12 +21,16 @@ import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.ipaynow.unionpay.plugin.api.CrossUnionPayPlugin;
+import com.ipaynow.unionpay.plugin.manager.route.dto.ResponseParams;
+import com.ipaynow.unionpay.plugin.manager.route.impl.ReceivePayResult;
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
@@ -33,6 +38,7 @@ import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
 import com.tencent.mm.opensdk.modelmsg.WXFileObject;
 import com.tencent.mm.opensdk.modelmsg.WXImageObject;
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.opensdk.modelmsg.WXMiniProgramObject;
 import com.tencent.mm.opensdk.modelmsg.WXMusicObject;
 import com.tencent.mm.opensdk.modelmsg.WXTextObject;
 import com.tencent.mm.opensdk.modelmsg.WXVideoObject;
@@ -42,6 +48,7 @@ import com.tencent.mm.opensdk.modelpay.PayResp;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
+import com.tencent.mm.opensdk.utils.Log;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -49,16 +56,20 @@ import java.util.UUID;
 /**
  * Created by tdzl2_000 on 2015-10-10.
  */
-public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEventHandler {
+public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEventHandler,ReceivePayResult {
     private String appId;
+    private Context mReactContext;
 
     private IWXAPI api = null;
     private final static String NOT_REGISTERED = "registerApp required.";
     private final static String INVOKE_FAILED = "WeChat API invoke returns false.";
     private final static String INVALID_ARGUMENT = "invalid argument.";
 
+    private Promise payPromise;
+
     public WeChatModule(ReactApplicationContext context) {
         super(context);
+        this.mReactContext = context;
     }
 
     @Override
@@ -181,6 +192,67 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
         _share(SendMessageToWX.Req.WXSceneFavorite, data, callback);
     }
 
+
+    @ReactMethod
+    public void shareMiniProgram(ReadableMap data, Promise promise) {
+        if (api == null) {
+            promise.resolve(NOT_REGISTERED);
+            return;
+        }
+        WXMiniProgramObject miniProgramObj = new WXMiniProgramObject();
+        miniProgramObj.webpageUrl = "http://www.qq.com"; // 兼容低版本的网页链接
+        // 默认体验版
+        miniProgramObj.miniprogramType = WXMiniProgramObject.MINIPTOGRAM_TYPE_RELEASE;// 正式版:0，测试版:1，体验版:2
+        int miniprogramType = data.getInt("miniprogramType");
+        switch (miniprogramType) {
+            case 0: miniProgramObj.miniprogramType = WXMiniProgramObject.MINIPTOGRAM_TYPE_RELEASE;  break;
+            case 1: miniProgramObj.miniprogramType = WXMiniProgramObject.MINIPROGRAM_TYPE_TEST;  break;
+            case 2: miniProgramObj.miniprogramType = WXMiniProgramObject.MINIPROGRAM_TYPE_PREVIEW;  break;
+            default:break;
+        }
+        miniProgramObj.userName = data.getString("userName");     // 小程序原始id
+        miniProgramObj.path = data.getString("path");            //小程序页面路径；对于小游戏，可以只传入 query 部分，来实现传参效果，如：传入 "?foo=bar"
+        final WXMediaMessage msg = new WXMediaMessage(miniProgramObj);
+        msg.title = data.getString("title");                      // 小程序消息title
+        msg.description =  data.getString("description");           // 小程序消息desc
+        final SendMessageToWX.Req req = new SendMessageToWX.Req();
+        req.transaction = "miniProgram";
+        req.message = msg;
+        req.scene = SendMessageToWX.Req.WXSceneSession;  // 目前只支持会话
+
+        // 下载图片
+        ImageRequest imageRequest = ImageRequestBuilder
+                .newBuilderWithSource(Uri.parse(data.getString("imageUrl")))
+                .setAutoRotateEnabled(true)
+                .build();
+
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+        final DataSource<CloseableReference<CloseableImage>>
+                dataSource = imagePipeline.fetchDecodedImage(imageRequest, mReactContext);
+
+        dataSource.subscribe(new BaseBitmapDataSubscriber() {
+
+            @Override
+            public void onNewResultImpl(@Nullable Bitmap bitmap) {
+                if (dataSource.isFinished() && bitmap != null){
+                    Bitmap bmp = Bitmap.createBitmap(bitmap);
+                    msg.setThumbImage(bmp);                      // 小程序消息封面图片，小于128k
+                    api.sendReq(req);
+                    dataSource.close();
+                }
+            }
+
+            @Override
+            public void onFailureImpl(DataSource dataSource) {
+                if (dataSource != null) {
+                    dataSource.close();
+                }
+            }
+        }, CallerThreadExecutor.getInstance());
+
+    }
+
+
     @ReactMethod
     public void pay(ReadableMap data, Callback callback) {
         PayReq payReq = new PayReq();
@@ -206,8 +278,11 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             payReq.extData = data.getString("extData");
         }
         payReq.appId = appId;
+        CrossUnionPayPlugin.getInstance().setCallResultReceiver(this);
         callback.invoke(api.sendReq(payReq) ? null : INVOKE_FAILED);
     }
+
+
 
     private void _share(final int scene, final ReadableMap data, final Callback callback) {
         Uri uri = null;
@@ -502,7 +577,40 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             map.putString("type", "PayReq.Resp");
             map.putString("returnKey", resp.returnKey);
         }
+        this.getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("WeChat_Resp", map);
+    }
 
+    @Override
+    public void onIpaynowTransResult(ResponseParams responseParams) {
+        String respCode = responseParams.respCode;
+        String errorCode = responseParams.errorCode;
+        String errorMsg = responseParams.respMsg;
+        StringBuilder temp = new StringBuilder();
+        WritableMap map = Arguments.createMap();
+        map.putString("type", "PayReq.Resp");
+        if ("00".equals(respCode)) {
+            temp.append("交易状态:成功");
+            map.putInt("errCode", 0);
+            map.putString("errStr", temp.toString());
+        } else if ("02".equals(respCode)) {
+            temp.append("交易状态:取消");
+            map.putInt("errCode", -2);
+            map.putString("errStr", temp.toString());
+        } else if ("01".equals(respCode)) {
+            temp.append("交易状态:失败").append("\n").append("错误码:").append(errorCode).append("原因:" + errorMsg);
+            map.putInt("errCode", -3);
+            map.putString("errStr", temp.toString());
+        } else if ("03".equals(respCode)) {
+            temp.append("交易状态:未知").append("\n").append("原因:" + errorMsg);
+            map.putInt("errCode", -4);
+            map.putString("errStr", temp.toString());
+        } else {
+            temp.append("respCode=").append(respCode).append("\n").append("respMsg=").append(errorMsg);
+            map.putInt("errCode", -5);
+            map.putString("errStr", temp.toString());
+        }
         this.getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit("WeChat_Resp", map);
