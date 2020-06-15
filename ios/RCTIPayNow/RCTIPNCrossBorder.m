@@ -12,6 +12,7 @@
 #import "IPNDESUtil.h"
 #import "UIViewController+IPNCustom.h"
 #import <UIKit/UIKit.h>
+#import <AlipaySDK/AlipaySDK.h>
 
 #define INVOKE_FAILED (@"IPNCrossBoder API invoke failed")
 #define RCTIPNEventName @"IPN_Resp"
@@ -21,6 +22,9 @@
 
 @end
 
+
+static RCTPromiseResolveBlock _resolve;
+static RCTPromiseRejectBlock _reject;
 
 @implementation RCTIPNCrossBorder
 
@@ -124,13 +128,50 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data:(RCTResponseSenderBlock)callback) {
     
 }
 
-
-
 - (void)sendEventWithInfo:(NSNotification *)notification {
     
     if (notification.userInfo) {
         [self sendEventWithName:RCTIPNEventName body:notification.userInfo];
     }
+}
+
+
+RCT_REMAP_METHOD(aliPay, payInfo:(NSString *)payInfo resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+  NSArray *urls = [[NSBundle mainBundle] infoDictionary][@"CFBundleURLTypes"];
+  NSMutableString *appScheme = [NSMutableString string];
+  BOOL multiUrls = [urls count] > 1;
+  for (NSDictionary *url in urls) {
+    NSArray *schemes = url[@"CFBundleURLSchemes"];
+    if (!multiUrls ||
+        (multiUrls && [@"alipay" isEqualToString:url[@"CFBundleURLName"]])) {
+      [appScheme appendString:schemes[0]];
+      break;
+    }
+  }
+  
+  if ([appScheme isEqualToString:@""]) {
+    NSString *error = @"scheme cannot be empty";
+    reject(@"10000", error, [NSError errorWithDomain:error code:10000 userInfo:NULL]);
+    return;
+  }
+  
+  _resolve = resolve;
+  _reject = reject;
+  
+  
+  [[AlipaySDK defaultService] payOrder:payInfo fromScheme:appScheme callback:^(NSDictionary *resultDic) {
+    [RCTIPNCrossBorder handleResult:resultDic];
+  }];
+}
+
++(void) handleResult:(NSDictionary *)resultDic
+{
+  NSString *status = resultDic[@"resultStatus"];
+  if ([status integerValue] >= 8000) {
+    _resolve(@[resultDic]);
+  } else {
+    _reject(status, resultDic[@"memo"], [NSError errorWithDomain:resultDic[@"memo"] code:[status integerValue] userInfo:NULL]);
+  }
 }
 
 - (void)dealloc {

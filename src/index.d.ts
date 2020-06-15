@@ -28,5 +28,6 @@ declare module "react-native-ipaynow" {
 
 
     export function ipnPay(param:IIPayNowPayParam):Promise<IIPayNowPayResponse>  
+    export function aliPay(orderInfo:string):Promise<any>
 
 }
