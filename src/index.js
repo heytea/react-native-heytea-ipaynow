@@ -18,4 +18,10 @@ export const ipnPay = param => {
     }
     return IPNCrossBorder.pay(param);
   };
+
+  export const aliPay = orderInfo => {
+
+    return IPNCrossBorder.aliPay(orderInfo)
+
+  }
   
