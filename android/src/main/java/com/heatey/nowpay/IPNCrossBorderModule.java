@@ -2,27 +2,38 @@ package com.heatey.nowpay;
 
 
 import android.os.AsyncTask;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
+import com.alipay.sdk.app.PayTask;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ipaynow.unionpay.plugin.api.CrossUnionPayPlugin;
+import com.ipaynow.unionpay.plugin.api.IPPlugin;
+import com.ipaynow.unionpay.plugin.conf.ErrorCode;
 import com.ipaynow.unionpay.plugin.conf.PluginConfig;
+import com.ipaynow.unionpay.plugin.manager.route.MerchantRouteManager;
 import com.ipaynow.unionpay.plugin.manager.route.dto.ResponseParams;
 import com.ipaynow.unionpay.plugin.manager.route.impl.ReceivePayResult;
+import com.ipaynow.unionpay.plugin.model.PayResult;
 import com.ipaynow.unionpay.plugin.utils.PreSignMessageUtil;
 
 
 import java.net.URLEncoder;
+import java.util.Map;
 
 /**
  * package: com.heatey.nowpay
@@ -136,6 +147,54 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
         mPromise.resolve(map);
 
     }
+
+
+    @ReactMethod
+    public void aliPay(final String orderInfo,Callback callback) {
+        callback.invoke("");
+        // 异步任务
+        IPNCrossBorderModule.AliPayTask aliPayTask = new IPNCrossBorderModule.AliPayTask();
+        aliPayTask.execute(orderInfo);
+    }
+
+    public class AliPayTask extends AsyncTask<String,  Integer, Map<String, String>> {
+        protected  Map<String, String> doInBackground(String... params) {
+            PayTask alipay = new PayTask(getCurrentActivity());
+            Map<String, String> result = alipay.payV2(params[0],true);
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Map<String, String> obj) {
+            super.onPostExecute(obj);
+            PayResult payResult = new PayResult((Map<String, String>) obj);
+            System.out.println("alipay call0000------- "+payResult.toString());
+            String result = payResult.getResult();
+            String resultStatus = payResult.getResultStatus();
+            String memo = payResult.getMemo();
+            System.out.println("alipay call2222------- "+payResult.toString());
+            WritableMap map = Arguments.createMap();
+            map.putString("mome",memo);
+            map.putString("result",result);
+            map.putString("status",resultStatus);
+            System.out.println("alipay call33333------- "+payResult.toString());
+
+            sendEvent(mContext,"aliPayCallback",map);
+        }
+
+    }
+
+
+
+    //定义发送事件的函数
+    public  void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params)
+    {
+        System.out.println("reactContext="+reactContext);
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName,params);
+    }
+
 
 
     @Override

@@ -1,4 +1,4 @@
-declare module "react-native-ipaynow" {
+declare module "@heytea/react-native-ipaynow" {
 
     export interface IIPayNowPayParam {
       appId: string; //商户应用唯一标识

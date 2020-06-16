@@ -20,8 +20,14 @@ export const ipnPay = param => {
   };
 
   export const aliPay = orderInfo => {
-
+    if(Platform.OS === 'android') {
+      return new Promise((resolve, reject) => {
+        IPNCrossBorder.aliPay(param, ()=>{});
+        IPNEmitter.addListener('aliPayCallback', resp => {
+          resolve(resp);
+        });
+      });
+    }
     return IPNCrossBorder.aliPay(orderInfo)
-
   }
   
