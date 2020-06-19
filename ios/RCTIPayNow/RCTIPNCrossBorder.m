@@ -1,3 +1,4 @@
+
 //
 //  RCTIPNCrossBorder.m
 //  heyteago
@@ -58,10 +59,15 @@ RCT_EXPORT_MODULE()
 
 
 // 参数
-RCT_EXPORT_METHOD(pay:(NSDictionary *)data:(RCTResponseSenderBlock)callback) {
+RCT_EXPORT_METHOD(pay:(NSDictionary *)data
+                  :(RCTPromiseResolveBlock)resolve
+                  :(RCTPromiseRejectBlock)reject
+                  ) {
     
-    BOOL isSuccess = [self payWithParam:data];
-    callback(@[isSuccess ? [NSNull null] : INVOKE_FAILED]);
+    _resolve = resolve;
+    _reject = reject;
+    [self payWithParam:data];
+    
     
 }
 
@@ -86,7 +92,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data:(RCTResponseSenderBlock)callback) {
     preSign.mhtReserved = paramDict[@"mhtReserved"];//  商户保留域,商户可以对交易进行标记， 现在支付将原样返回给商户
     
     NSString *backendSign = paramDict[@"iPaySign"];
-    NSString *iOSScheme = paramDict[@"iOSScheme"];
+    NSString *iOSScheme = @"IPaynowCrossBorder9832d23hd23";
     
     NSString *preSignStr = [preSign generatePresignMessage];
     
@@ -118,13 +124,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data:(RCTResponseSenderBlock)callback) {
             break;
     }
     
-    NSDictionary *body = @{
-                           @"errCode":erroCode ? erroCode:@"",
-                           @"errInfo":erroInfo ? erroInfo:@"",
-                           @"result":resultStr
-                           };
-
-  [[NSNotificationCenter defaultCenter] postNotificationName:IPNCNotification object:nil userInfo:body];
+    _resolve(@{@"result":resultStr});
     
 }
 
@@ -134,7 +134,6 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data:(RCTResponseSenderBlock)callback) {
         [self sendEventWithName:RCTIPNEventName body:notification.userInfo];
     }
 }
-
 
 RCT_REMAP_METHOD(aliPay, payInfo:(NSString *)payInfo resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
   NSArray *urls = [[NSBundle mainBundle] infoDictionary][@"CFBundleURLTypes"];
@@ -168,11 +167,12 @@ RCT_REMAP_METHOD(aliPay, payInfo:(NSString *)payInfo resolver:(RCTPromiseResolve
 {
   NSString *status = resultDic[@"resultStatus"];
   if ([status integerValue] >= 8000) {
-    _resolve(@[resultDic]);
+      _resolve(@{@"status":status,@"mome":resultDic[@"memo"]});
   } else {
     _reject(status, resultDic[@"memo"], [NSError errorWithDomain:resultDic[@"memo"] code:[status integerValue] userInfo:NULL]);
   }
 }
+
 
 - (void)dealloc {
     
