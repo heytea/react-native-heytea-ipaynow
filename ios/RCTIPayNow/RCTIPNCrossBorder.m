@@ -60,14 +60,11 @@ RCT_EXPORT_MODULE()
 
 // 参数
 RCT_EXPORT_METHOD(pay:(NSDictionary *)data
-                  :(RCTPromiseResolveBlock)resolve
-                  :(RCTPromiseRejectBlock)reject
+                  :(RCTResponseSenderBlock)callback
                   ) {
     
-    _resolve = resolve;
-    _reject = reject;
-    [self payWithParam:data];
-    
+    BOOL isSuccess = [self payWithParam:data];
+    callback(@[isSuccess ? [NSNull null] : INVOKE_FAILED]);
     
 }
 
@@ -124,7 +121,13 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
             break;
     }
     
-    _resolve(@{@"result":resultStr});
+     NSDictionary *body = @{
+                               @"errCode":erroCode ? erroCode:@"",
+                               @"errInfo":erroInfo ? erroInfo:@"",
+                               @"result":resultStr
+                               };
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:IPNCNotification object:nil userInfo:body];
     
 }
 
@@ -182,3 +185,4 @@ RCT_REMAP_METHOD(aliPay, payInfo:(NSString *)payInfo resolver:(RCTPromiseResolve
 
 
 @end
+
