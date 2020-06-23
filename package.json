@@ -1,6 +1,6 @@
 {
     "name": "@heytea/react-native-ipaynow",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "ipaynow react-native plug",
     "main": "src/index",
     "files": [
