@@ -14,7 +14,6 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m}"
   s.dependency "React"
   s.vendored_libraries = "ios/vendor/libipaynowCrossBorderPlugin.a"
-  s.dependency 'WechatOpenSDK', '1.8.6'
   s.dependency 'AlipaySDK-iOS', '15.5.9'
   s.requires_arc = true
   s.frameworks = 'CoreGraphics','CoreTelephony','QuartzCore','SystemConfiguration','Security','Foundation','UIKit'
