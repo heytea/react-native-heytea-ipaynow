@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by tdzl2_000 on 2015-10-10.
  */
-public class RNNowPayPackage implements ReactPackage {
+public class WeChatPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         return Arrays.asList(new NativeModule[]{

@@ -33,6 +33,8 @@ import com.ipaynow.unionpay.plugin.manager.route.dto.ResponseParams;
 import com.ipaynow.unionpay.plugin.manager.route.impl.ReceivePayResult;
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
+import com.tencent.mm.opensdk.modelbiz.WXInvoiceAuthInsert;
+import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
 import com.tencent.mm.opensdk.modelmsg.WXFileObject;
@@ -252,6 +254,65 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     }
 
+    /**
+     * App拉起微信小程序
+     *
+     */
+    @ReactMethod
+    public void launchMiniProgram(ReadableMap data, Promise promise) {
+        try {
+            String username = data.getString("userName");
+            String path = data.getString("path");
+            int MINIPTOGRAM_TYPE = data.getInt("miniProgramType");
+            IWXAPI api = WXAPIFactory.createWXAPI(mReactContext, appId);
+            WXLaunchMiniProgram.Req req = new WXLaunchMiniProgram.Req();
+            req.userName = username;
+            req.path = path;
+            req.miniprogramType = WXLaunchMiniProgram.Req.MINIPTOGRAM_TYPE_RELEASE;
+            req.miniprogramType = MINIPTOGRAM_TYPE;
+            api.sendReq(req);
+            promise.resolve(null);
+        } catch (Exception e) {
+            promise.reject(new Throwable(e.getMessage()));
+        }
+    }
+
+    /**
+     * 打开授权页
+     *
+     * @param url     获取授权页链接返回的auth_url
+     * @param promise
+     */
+    @ReactMethod
+    public void openAuthPage(String url, final Promise promise) {
+        try {
+            WXInvoiceAuthInsert.Req req = new WXInvoiceAuthInsert.Req();
+            req.url = url;
+            IWXAPI api = WXAPIFactory.createWXAPI(mReactContext, appId);
+            api.handleIntent(getCurrentActivity().getIntent(), new IWXAPIEventHandler() {
+                @Override
+                public void onReq(BaseReq baseReq) {
+
+                }
+
+                @Override
+                public void onResp(BaseResp baseResp) {
+                    if (baseResp.getClass().equals(WXInvoiceAuthInsert.Resp.class)) {
+                        WXInvoiceAuthInsert.Resp oResp = (WXInvoiceAuthInsert.Resp) baseResp;
+                        String sLog = "errcode:" + oResp.errCode + " wxorderid:" + oResp.wxOrderId;
+                        System.out.print(sLog);
+                        WritableMap writableMap = Arguments.createMap();
+                        writableMap.putInt("errCode", oResp.errCode);
+                        writableMap.putString("wxOrderId", oResp.wxOrderId);
+                        promise.resolve(writableMap);
+                    }
+                }
+            });
+            api.sendReq(req);
+        } catch (Exception e) {
+            promise.reject(new Throwable(e.getMessage()));
+        }
+    }
 
     @ReactMethod
     public void pay(ReadableMap data, Callback callback) {
