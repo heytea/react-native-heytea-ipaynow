@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m}"
   s.dependency "React"
   s.vendored_libraries = "ios/vendor/libipaynowCrossBorderPlugin.a"
-  s.dependency 'AlipaySDK-iOS', '15.7.7'
+  s.dependency 'AlipaySDK-iOS', '15.6.8'
   s.requires_arc = true
   s.frameworks = 'CoreGraphics','CoreTelephony','QuartzCore','SystemConfiguration','Security','Foundation','UIKit'
   s.library = 'z','sqlite3.0'
