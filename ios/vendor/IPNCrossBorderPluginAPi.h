@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "IPNCrossBorderPluginDelegate.h"
+
 @interface IPNCrossBorderPluginAPi : NSObject
 /**
  *  设置导航栏颜色
@@ -70,14 +71,18 @@
  */
 + (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
 
+// 通过系统左上角返回app或者从后台进入app
++ (void)applicationDidBecomeActive;
+
 
 /**
  *  启动app时候调用，用户微信、QQ支付
- *  跨境不可用
  */
 + (void)willEnterForeground;
 
 
+//测试使用  发布删除
++ (void)setEnvironment:(NSInteger)environment;
 
 
 @end
