@@ -56,7 +56,7 @@
  *
  *  @return 是否成功
  */
-+ (BOOL)pay:(NSString*)data AndScheme:(NSString*)scheme viewController:(UIViewController*)viewController delegate:(id<IPNCrossBorderPluginDelegate>)delegate;
++ (BOOL)pay:(NSString*)data AndScheme:(NSString*)scheme viewController:(UIViewController*)viewController delegate:(id<IPNCrossBorderPluginDelegate>)delegate universalLink:(NSString *)universalLink;
 
 
 /**
@@ -70,6 +70,10 @@
  *  @return return value description
  */
 + (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
+
++ (BOOL)application:(UIApplication *)app openURL:(NSURL *)url annotation:(id)annotation;
+
++ (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void(^)(NSArray<id<UIUserActivityRestoring>> * __nullable restorableObjects))restorationHandler;
 
 // 通过系统左上角返回app或者从后台进入app
 + (void)applicationDidBecomeActive;
