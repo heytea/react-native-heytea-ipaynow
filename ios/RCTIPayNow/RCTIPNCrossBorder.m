@@ -96,7 +96,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
     NSString* payData=[preSignStr stringByAppendingString:@"&"];
     NSString *md5 = [NSString stringWithFormat:@"mhtSignType=MD5&mhtSignature=%@",backendSign];
     payData=[payData stringByAppendingString:md5];
-    BOOL isSuccess =   [IPNCrossBorderPluginAPi pay:payData AndScheme:iOSScheme viewController:[UIViewController getCurrentVC] delegate:self];
+   BOOL isSuccess = [IPNCrossBorderPluginAPi pay:payData AndScheme:iOSScheme viewController:[UIViewController getCurrentVC] delegate:self universalLink:@"https://ewbuq.share2dlink.com/"];
     return isSuccess;
     
 }
