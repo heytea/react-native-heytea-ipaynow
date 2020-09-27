@@ -2,10 +2,6 @@ package com.heatey.nowpay;
 
 
 import android.os.AsyncTask;
-import android.os.Message;
-import android.text.TextUtils;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -22,17 +18,13 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ipaynow.unionpay.plugin.api.CrossUnionPayPlugin;
-import com.ipaynow.unionpay.plugin.api.IPPlugin;
-import com.ipaynow.unionpay.plugin.conf.ErrorCode;
 import com.ipaynow.unionpay.plugin.conf.PluginConfig;
-import com.ipaynow.unionpay.plugin.manager.route.MerchantRouteManager;
 import com.ipaynow.unionpay.plugin.manager.route.dto.ResponseParams;
 import com.ipaynow.unionpay.plugin.manager.route.impl.ReceivePayResult;
 import com.ipaynow.unionpay.plugin.model.PayResult;
 import com.ipaynow.unionpay.plugin.utils.PreSignMessageUtil;
 
 
-import java.net.URLEncoder;
 import java.util.Map;
 
 /**
@@ -65,39 +57,50 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
 
     @ReactMethod
     public void pay(ReadableMap map, Promise promise) {
-        this.mPromise = promise;
-
-
+        mPromise = promise;
         //创建订单
-        creatPayMessage(map);
+        boolean result = createPayMessage(map);
+        if (!result) {
+            StringBuilder temp = new StringBuilder();
+            WritableMap m = Arguments.createMap();
+            temp.append("交易状态:失败").append("\n").append("错误码:").append("50000").append("原因: 后台返回字段缺失");
+            m.putString("result", "failed");
+            m.putString("msg", temp.toString());
+            mPromise.resolve(m);
+            mPromise = null;
+        }
         // 生成请求参数并调起支付
         GetMessage gm = new GetMessage();
         gm.execute();
     }
-
 
     /**
      * 创建订单
      *
      * @param map 商户订单号
      */
-    private void creatPayMessage(ReadableMap map) {
-        mPreSign.appId = map.getString("appId");
-        mPreSign.mhtOrderNo = map.getString("mhtOrderNo");
-        mPreSign.mhtOrderName = map.getString("mhtOrderName");
-        mPreSign.mhtOrderAmt = map.getString("mhtOrderAmt");
-        mPreSign.mhtOrderDetail = map.getString("mhtOrderDetail");
-        mPreSign.mhtOrderStartTime = map.getString("mhtOrderStartTime");
-        mPreSign.mhtReserved = map.getString("mhtReserved");
-        mPreSign.notifyUrl = map.getString("notifyUrl");
-        mPreSign.mhtOrderType = map.getString("mhtOrderType");
-        mPreSign.mhtCurrencyType = map.getString("mhtCurrencyType");
-        mPreSign.mhtOrderTimeOut = map.getString("mhtOrderTimeOut");
-        mPreSign.mhtCharset = map.getString("mhtCharset");
-        mPreSign.payChannelType = map.getString("payChannelType");  // 80 微信跨境支付 |  90 支付宝跨境支付
-        mPreSign.mhtSubAppId = map.getString("mhtSubAppId");
-        mPreSign.mhtSignature = map.getString("iPaySign");
-        mPreSign.mhtAmtCurrFlag = map.getString("mhtAmtCurrFlag");
+    private boolean createPayMessage(ReadableMap map) {
+        try {
+            mPreSign.appId = map.getString("appId");
+            mPreSign.mhtOrderNo = map.getString("mhtOrderNo");
+            mPreSign.mhtOrderName = map.getString("mhtOrderName");
+            mPreSign.mhtOrderAmt = map.getString("mhtOrderAmt");
+            mPreSign.mhtOrderDetail = map.getString("mhtOrderDetail");
+            mPreSign.mhtOrderStartTime = map.getString("mhtOrderStartTime");
+            mPreSign.mhtReserved = map.getString("mhtReserved");
+            mPreSign.notifyUrl = map.getString("notifyUrl");
+            mPreSign.mhtOrderType = map.getString("mhtOrderType");
+            mPreSign.mhtCurrencyType = map.getString("mhtCurrencyType");
+            mPreSign.mhtOrderTimeOut = map.getString("mhtOrderTimeOut");
+            mPreSign.mhtCharset = map.getString("mhtCharset");
+            mPreSign.payChannelType = map.getString("payChannelType");  // 80 微信跨境支付 |  90 支付宝跨境支付
+            mPreSign.mhtSubAppId = map.getString("mhtSubAppId");
+            mPreSign.mhtSignature = map.getString("iPaySign");
+            mPreSign.mhtAmtCurrFlag = map.getString("mhtAmtCurrFlag");
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 
@@ -116,6 +119,9 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
 
     @Override
     public void onIpaynowTransResult(ResponseParams responseParams) {
+        if (mPromise == null) {
+            return;
+        }
         String respCode = responseParams.respCode;
         String errorCode = responseParams.errorCode;
         String errorMsg = responseParams.respMsg;
@@ -145,7 +151,7 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
         }
 
         mPromise.resolve(map);
-
+        mPromise = null;
     }
 
 
