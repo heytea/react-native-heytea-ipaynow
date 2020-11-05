@@ -643,6 +643,12 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                 .emit("WeChat_Resp", map);
     }
 
+
+    @ReactMethod
+    public void jpPay() {
+        CrossUnionPayPlugin.getInstance().setCallResultReceiver(this);
+    }
+
     @Override
     public void onIpaynowTransResult(ResponseParams responseParams) {
         String respCode = responseParams.respCode;
