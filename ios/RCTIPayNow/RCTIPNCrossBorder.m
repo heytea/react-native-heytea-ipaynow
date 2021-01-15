@@ -169,11 +169,8 @@ RCT_REMAP_METHOD(aliPay, payInfo:(NSString *)payInfo resolver:(RCTPromiseResolve
 +(void) handleResult:(NSDictionary *)resultDic
 {
   NSString *status = resultDic[@"resultStatus"];
-  if ([status integerValue] >= 8000) {
-      _resolve(@{@"status":status,@"mome":resultDic[@"memo"]});
-  } else {
-    _reject(status, resultDic[@"memo"], [NSError errorWithDomain:resultDic[@"memo"] code:[status integerValue] userInfo:NULL]);
-  }
+  _resolve(@{@"status":status,@"mome":resultDic[@"memo"]});
+  
 }
 
 
