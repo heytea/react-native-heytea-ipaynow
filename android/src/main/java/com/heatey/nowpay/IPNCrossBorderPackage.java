@@ -12,6 +12,7 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 import com.heatey.nowpay.IPNCrossBorderModule;
+import com.heatey.nowpay.WeChatModule;
 
 /**
  * Package     ：com.heatey.nowpay
@@ -25,6 +26,7 @@ public class IPNCrossBorderPackage implements ReactPackage {
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         return Arrays.asList(new NativeModule[]{
                 new IPNCrossBorderModule(reactContext), // 现在支付插件
+                new WeChatModule(reactContext),
         });
     }
     
