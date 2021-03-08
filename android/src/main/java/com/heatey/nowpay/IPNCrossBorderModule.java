@@ -16,6 +16,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ipaynow.unionpay.plugin.api.CrossUnionPayPlugin;
 import com.ipaynow.unionpay.plugin.conf.PluginConfig;
@@ -25,6 +26,7 @@ import com.ipaynow.unionpay.plugin.model.PayResult;
 import com.ipaynow.unionpay.plugin.utils.PreSignMessageUtil;
 
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,6 +41,7 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
     private ReactApplicationContext mContext;
     private PreSignMessageUtil mPreSign = new PreSignMessageUtil();
     private Promise mPromise;
+    private Map<String, Promise> ipaynowPromiseMap = new HashMap<>();
 
     public IPNCrossBorderModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -156,15 +159,17 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
 
 
     @ReactMethod
-    public void aliPay(final String orderInfo,Callback callback) {
-        callback.invoke("");
+    public void aliPay(final String orderInfo, Promise promise) {
+        ipaynowPromiseMap.put(orderInfo, promise);
         // 异步任务
         IPNCrossBorderModule.AliPayTask aliPayTask = new IPNCrossBorderModule.AliPayTask();
         aliPayTask.execute(orderInfo);
     }
 
     public class AliPayTask extends AsyncTask<String,  Integer, Map<String, String>> {
+        private String no;
         protected  Map<String, String> doInBackground(String... params) {
+            no = params[0];
             PayTask alipay = new PayTask(getCurrentActivity());
             Map<String, String> result = alipay.payV2(params[0],true);
             return result;
@@ -186,6 +191,14 @@ public class IPNCrossBorderModule extends ReactContextBaseJavaModule implements 
             System.out.println("alipay call33333------- "+payResult.toString());
 
             sendEvent(mContext,"aliPayCallback",map);
+            Promise promise = ipaynowPromiseMap.get(no);
+            if (promise != null) {
+                WritableMap resMap = new WritableNativeMap();
+                resMap.putString("status", resultStatus);
+                resMap.putString("mome", memo);
+                promise.resolve(resMap);
+                ipaynowPromiseMap.remove(no);
+            }
         }
 
     }

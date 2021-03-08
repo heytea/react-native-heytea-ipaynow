@@ -3,31 +3,27 @@ import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 const { IPNCrossBorder } = NativeModules;
 const IPNEmitter = new NativeEventEmitter(IPNCrossBorder);
 export const ipnPay = param => {
-    if (Platform.OS === 'ios') {
-      return new Promise((resolve, reject) => {
-        IPNCrossBorder.pay(param, err => {
-          if (err) {
-            reject(err);
-          } else {
-            IPNEmitter.addListener('IPN_Resp', resp => {
-              resolve(resp);
-            });
-          }
-        });
+  if (Platform.OS === 'ios') {
+    return new Promise((resolve, reject) => {
+      IPNCrossBorder.pay(param, err => {
+        if (err) {
+          reject(err);
+        } else {
+          IPNEmitter.addListener('IPN_Resp', resp => {
+            resolve(resp);
+          });
+        }
       });
-    }
-    return IPNCrossBorder.pay(param);
-  };
-
-  export const aliPay = orderInfo => {
-    if(Platform.OS === 'android') {
-      return new Promise((resolve, reject) => {
-        IPNCrossBorder.aliPay(param, ()=>{});
-        IPNEmitter.addListener('aliPayCallback', resp => {
-          resolve(resp);
-        });
-      });
-    }
-    return IPNCrossBorder.aliPay(orderInfo)
+    });
   }
-  
+  return IPNCrossBorder.pay(param);
+};
+
+export const aliPay = orderInfo => {
+  return IPNCrossBorder.aliPay(orderInfo)
+}
+
+export default {
+  ipnPay,
+  aliPay,
+}

@@ -28,6 +28,6 @@ declare module "@heytea/react-native-ipaynow" {
 
 
     export function ipnPay(param:IIPayNowPayParam):Promise<IIPayNowPayResponse>  
-    export function aliPay(orderInfo:string):Promise<any>
+    export function aliPay(orderInfo:string):Promise<{status: string; mome: string}>
 
 }
