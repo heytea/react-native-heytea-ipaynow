@@ -202,7 +202,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             return;
         }
         WXMiniProgramObject miniProgramObj = new WXMiniProgramObject();
-        miniProgramObj.webpageUrl = "http://www.qq.com"; // 兼容低版本的网页链接
+        miniProgramObj.webpageUrl = data.getString("webpageUrl"); // 兼容低版本的网页链接
         // 默认体验版
         miniProgramObj.miniprogramType = WXMiniProgramObject.MINIPTOGRAM_TYPE_RELEASE;// 正式版:0，测试版:1，体验版:2
         int miniprogramType = data.getInt("miniprogramType");
@@ -224,7 +224,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
         // 下载图片
         ImageRequest imageRequest = ImageRequestBuilder
-                .newBuilderWithSource(Uri.parse(data.getString("imageUrl")))
+                .newBuilderWithSource(Uri.parse(data.getString("thumbImage")))
                 .setAutoRotateEnabled(true)
                 .build();
 
