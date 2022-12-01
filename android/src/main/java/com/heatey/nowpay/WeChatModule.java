@@ -193,10 +193,9 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
         }
         _share(SendMessageToWX.Req.WXSceneFavorite, data, callback);
     }
-
-
+    
     @ReactMethod
-    public void shareMiniProgram(ReadableMap data, Promise promise) {
+    public void shareToMini(ReadableMap data, Promise promise) {
         if (api == null) {
             promise.resolve(NOT_REGISTERED);
             return;
