@@ -13,6 +13,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => package["repository"]["url"], :tag => "#{s.version}" }
   s.source_files = "ios/**/*.{h,m}"
   s.dependency "React"
+  s.dependency 'AlipaySDK-iOS'
   s.vendored_libraries = "ios/vendor/libipaynowCrossBorderPlugin.a"
   s.requires_arc = true
   s.frameworks = 'CoreGraphics','CoreTelephony','QuartzCore','SystemConfiguration','Security','Foundation','UIKit'
